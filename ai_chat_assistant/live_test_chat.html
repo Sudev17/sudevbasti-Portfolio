@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudev Basti - AI Portfolio Assistant | Live Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .message.assistant .message-content {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message.error .message-content {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .avatar.assistant {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .avatar.user {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #4CAF50;
+        }
+
+        .send-button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        .quick-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-question {
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-question:hover {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 85vh;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="status-indicator" id="statusIndicator"></div>
+        
+        <div class="chat-header">
+            <h1>🤖 Sudev Basti - AI Portfolio Assistant</h1>
+            <p>Ask me about Sudev's projects, skills, internships, and achievements!</p>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <div class="message assistant">
+                <div class="avatar assistant">SB</div>
+                <div class="message-content">
+                    👋 Hello! I'm Sudev Basti's AI portfolio assistant.
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="messageInput" 
+                class="input-field" 
+                placeholder="Ask about projects, skills, or achievements..."
+                maxlength="500"
+            >
+            <button id="sendButton" class="send-button">Send</button>
+        </div>
+
+        <div class="quick-questions">
+            <div class="quick-question" onclick="sendQuickQuestion('Tell me about your projects')">📋 Projects Overview</div>
+            <div class="quick-question" onclick="sendQuickQuestion('Explain NIDS architecture in detail')">🔒 NIDS Technical Details</div>
+            <div class="quick-question" onclick="sendQuickQuestion('How does pothole detection work?')">🛣️ Pothole Detection</div>
+            <div class="quick-question" onclick="sendQuickQuestion('What is LAW GPT 2.0?')">⚖️ LAW GPT System</div>
+            <div class="quick-question" onclick="sendQuickQuestion('What skills do you have?')">🎯 Skills & Expertise</div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Gemini AI Configuration
+        const API_KEY = "AIzaSyBcUxDliBGtoj4gRASV1xRlNBRgnsCDpgM";
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+        // System Prompt - Complete Portfolio Knowledge
+        const SYSTEM_PROMPT = `You are an expert AI assistant representing SUDEV BASTI, a B.E. AIML engineering student with hands-on experience in Python, SQL, and ML frameworks. You provide accurate, professional, and detailed responses about Sudev's educational background, projects, internships, skills, and achievements.
+
+CORE PERSONA:
+- Name: SUDEV BASTI
+- Status: B.E. AIML Engineering Student  
+- Email: sudevbasti0717@gmail.com
+- Summary: Passionate about building scalable AI solutions with experience across domains
+
+EDUCATION:
+- B.E. AIML at SDM College of Engineering and Technology, Dharwad (2022-2026, CGPA: 7.9)
+- Minor in AI at IIT Ropar (NOV 2024 – DEC 2025)
+
+SKILLS: Python, C, SQL, Java, TensorFlow, PyTorch, Scikit-learn, OpenCV, YOLOv8, CNN, LSTM, Transformers, Flask, FastAPI, React, Docker
+
+PROJECTS:
+
+1. NETWORK INTRUSION DETECTION SYSTEM (NIDS)
+- AI-powered cybersecurity system using CNN + LSTM hybrid
+- 96% accuracy, <100ms latency, handles 1M+ records
+- Flask API with real-time dashboard
+- Datasets: NSL-KDD, CICIDS
+- Strong performance on DoS attacks, challenges with rare R2L/U2R attacks
+
+2. AI-BASED INDIAN ROAD POTHOLE DETECTION  
+- YOLOv8 + CNN + Transformer hybrid model
+- Custom dataset: 2,000+ images with region-specific keywords
+- 92% accuracy vs 60% with foreign datasets
+- Real-time detection with reduced false positives
+- Handles shadows, water patches, lighting variations
+
+3. HATE SPEECH DETECTION (ICON 2024 - 3rd Place)
+- Multilingual system for Hindi-English code-mixed text
+- TF-IDF + Random Forest + SMOTE for class imbalance
+- 78% fake news accuracy, 77%+ F1 for hate speech
+- Published research paper, 3rd place Task A, 13th place Task B
+
+4. LAW GPT 2.0 - AI LEGAL ASSISTANT
+- Production-ready system with 163,504+ legal records
+- FastAPI backend + React frontend + Google Gemini AI
+- Supports 12 Indian languages, semantic search
+- 90%+ English accuracy, 80%+ Hindi accuracy, <5s response
+- Deployed: law-gpt-professional.web.app
+
+INTERNSHIP: ML Intern at IIIT Dharwad (Hate Speech Detection project)
+
+ACHIEVEMENTS: ICON 2024 3rd place, Research publication, Department Coordinator INSIGNIA 24
+
+RESPONSE GUIDELINES:
+- Provide brief (1-2 sentences), medium (4-6 sentences), or detailed responses based on query complexity
+- Include specific metrics and technical details
+- Maintain professional, knowledgeable tone
+- Connect projects to demonstrate practical skills application`;
+
+        // DOM Elements
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const statusIndicator = document.getElementById('statusIndicator');
+
+        // State Management
+        let isLoading = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Test API connection
+            testConnection();
+        });
+
+        // Test API Connection
+        async function testConnection() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: "Test connection"
+                            }]
+                        }]
+                    })
+                });
+
+                if (response.ok) {
+                    statusIndicator.style.background = '#4CAF50';
+                    console.log('✅ Gemini AI connection successful');
+                } else {
+                    throw new Error('Connection failed');
+                }
+            } catch (error) {
+                statusIndicator.style.background = '#f44336';
+                console.error('❌ API connection failed:', error);
+                addMessage('⚠️ API connection issue. Please check your internet connection.', 'error');
+            }
+        }
+
+        // Send Message Function
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isLoading) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            messageInput.value = '';
+
+            // Show loading
+            isLoading = true;
+            sendButton.disabled = true;
+            const loadingId = addLoadingMessage();
+
+            try {
+                const prompt = `${SYSTEM_PROMPT}
+
+User Question: ${message}
+
+Provide a helpful, accurate response about Sudev Basti's portfolio:`;
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 1000,
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    const aiResponse = data.candidates[0].content.parts[0].text;
+                    removeLoadingMessage(loadingId);
+                    addMessage(aiResponse, 'assistant');
+                } else {
+                    throw new Error('Invalid response format');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                removeLoadingMessage(loadingId);
+                addMessage(`❌ Error: ${error.message}. Please try again.`, 'error');
+            } finally {
+                isLoading = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Quick Question Function
+        window.sendQuickQuestion = function(question) {
+            messageInput.value = question;
+            sendMessage();
+        }
+
+        // Add Message to Chat
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `avatar ${sender}`;
+            avatar.textContent = sender === 'user' ? 'YOU' : 'SB';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            // Format text with basic markdown support
+            const formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+            
+            content.innerHTML = formattedText;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            return messageDiv;
+        }
+
+        // Loading Message Functions
+        function addLoadingMessage() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message assistant';
+            loadingDiv.id = 'loading-message';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar assistant';
+            avatar.textContent = 'SB';
+
+            const content = document.createElement('div');
+            content.className = 'message-content loading';
+            content.innerHTML = '🤔 Thinking<span class="loading-dots"></span>';
+
+            loadingDiv.appendChild(avatar);
+            loadingDiv.appendChild(content);
+            messagesContainer.appendChild(loadingDiv);
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            return 'loading-message';
+        }
+
+        function removeLoadingMessage(id) {
+            const loadingMessage = document.getElementById(id);
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+    </script>
+</body>
+</html>
