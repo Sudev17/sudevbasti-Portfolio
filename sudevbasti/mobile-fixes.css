@@ -1,0 +1,184 @@
+/* Mobile Optimization Fixes - Add to your styles.css */
+
+/* Ensure proper font loading on mobile */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Mobile-first responsive improvements */
+body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Fix touch targets for mobile */
+.btn, .nav-link, .chat-trigger, .back-to-top {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+}
+
+/* Prevent zoom on input focus */
+input, textarea, select {
+    font-size: 16px;
+}
+
+/* Improve mobile scrolling */
+.chat-messages {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile navigation improvements */
+@media (max-width: 768px) {
+    .nav-menu {
+        background: linear-gradient(135deg, 
+            rgba(10, 10, 10, 0.98) 0%, 
+            rgba(25, 25, 35, 0.95) 50%, 
+            rgba(15, 15, 15, 0.98) 100%);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+    
+    /* Improve hero section on mobile */
+    .hero {
+        min-height: 90vh;
+        padding: 1rem 0;
+    }
+    
+    .hero-title {
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+        line-height: 1.1;
+    }
+    
+    .hero-subtitle {
+        font-size: clamp(1rem, 3vw, 1.2rem);
+        line-height: 1.3;
+    }
+    
+    /* Mobile typography */
+    .section-title {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+    }
+    
+    .section-subtitle {
+        font-size: clamp(0.9rem, 2.5vw, 1rem);
+    }
+    
+    /* Skills section mobile optimization */
+    .skill-items-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .skill-item {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+    
+    /* Project cards mobile */
+    .project-stack-item {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Contact form mobile */
+    .contact-form input,
+    .contact-form textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 0.75rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        align-items: stretch;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Two-column layout for skills on small screens */
+    .skill-items-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem;
+    }
+    
+    .skill-item {
+        font-size: 0.75rem;
+        padding: 0.4rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 320px) {
+    .container {
+        padding: 0 0.5rem;
+    }
+    
+    .hero-title {
+        font-size: 1.6rem;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+    }
+    
+    /* Single column for very small screens */
+    .skill-items-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chat-widget {
+        width: 100vw;
+        right: 0;
+        left: 0;
+        border-radius: 0;
+    }
+}
+
+/* Fix for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    .hero {
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* Improve touch interactions */
+@media (hover: none) and (pointer: coarse) {
+    .hover\:scale-105:hover {
+        transform: scale(1.02);
+    }
+    
+    .skill-stack-item:hover {
+        transform: translateY(-2px);
+    }
+}
+
+/* Performance optimizations for mobile */
+.hero-background,
+.space-background {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
